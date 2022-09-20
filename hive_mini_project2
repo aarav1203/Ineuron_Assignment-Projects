@@ -1,0 +1,57 @@
+# Create new Database
+create database hive_mini_project2;
+
+use hive_mini_project2;
+
+# Create table 
+create table parking_violation(
+    > Summons_Number int,plate_id int,
+    registration_state string,
+    plate_type string,issue_date string,
+    violation_code int,vechile_body_type string,
+    vechile_make string,issusing_agency varchar(5),
+    street_code1 int,
+    street_code2 int,
+    street_code3 int,
+    vechile_expiration_date int,
+    violation_location int,
+    violation_precinct int,
+    issuer_precinct int,
+    issuer_code int,
+    issuer_command string,
+    issuer_squad varchar(5),
+    violation_time varchar(20),
+    time_first_observed varchar(10),
+    violation_country string,
+    violation_infront_opposite varchar(5),
+    house_number int,street_name string,
+    intersecting_streets string,date_first_observed int,
+    law_section int,sub_division varchar(10),
+    violation_legal_code varchar(10),
+    days_in_parking_effect string,
+    from_hours_effect varchar(10),
+    to_hours_effect varchar(10),
+    vechile_color string,
+    unreserved_vechile int,
+    vechile_year string,meter_number int,
+    feet_from_curb int,
+    violation_postal_code int,
+    violation_description string,
+    no_standing varchar(10),
+    hydrant_violation varchar(10),
+    double_parking_violation varchar(10) )
+    row format serde 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+    with serdeproperties (
+    "separatorChar" = ",",
+    "quoteChar" = "\"",
+    "escapeChar" = "\\") 
+    stored as textfile 
+    tblproperties ("skip.header.line.count" = "1");
+    
+    #Loading data into table
+    load data local inpath 'file:///home/cloudera/hive_data/Parking_Violations_Issued_-_Fiscal_Year_2017.csv' into table parking_violation;
+    
+    # Creating backup table
+    create table  parking_violation_bkp as  select * from parking_violation;
+    
+    
