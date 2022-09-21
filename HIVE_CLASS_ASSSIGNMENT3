@@ -1,0 +1,101 @@
+1. Download vechile sales data -> https://github.com/shashank-mishra219/Hive-Class/blob/main/sales_order_data.csv
+
+2. Store raw data into hdfs location
+
+3. Create a internal hive table "sales_order_csv" which will store csv data sales_order_csv .. make sure to skip header row while creating table
+
+4. Load data from hdfs path into "sales_order_csv" 
+
+5. Create an internal hive table which will store data in ORC format "sales_order_orc"
+
+6. Load data from "sales_order_csv" into "sales_order_orc"
+
+Perform below menioned queries on "sales_order_orc" table :
+
+a. Calculatye total sales per year
+b. Find a product for which maximum orders were placed
+c. Calculate the total sales for each quarter
+d. In which quarter sales was minimum
+e. In which country sales was maximum and in which country sales was minimum
+f. Calculate quartelry sales for each city
+h. Find a month for each year in which maximum number of quantities were sold
+
+#SOLUTION
+
+CREATE DATABASE HIVE_ASSIGNMENT;
+USE HIVE_ASSIGNMENT;
+
+# MOVE DATA FROM LOCAL TO HDFS LOCATION
+hdfs dfs -put '/hive_data/sales_order_data.csv' 'hive_assignment_data/';
+
+#Crete internal Hive table
+create table sales_order_csv(
+ORDERNUMBER int,
+QUANTITYORDERED	int,
+PRICEEACH float,
+ORDERLINENUMBER int,
+SALES float,
+STATUS string,
+QTR_ID int,
+MONTH_ID	int,
+YEAR_ID int,
+PRODUCTLINE	string,
+MSRP int,
+PRODUCTCODE string,
+PHONE int,
+CITY string,
+STATE city,
+POSTALCODE int,
+country string,
+TERRITORY string,
+CONTACTLASTNAME string,
+CONTACTFIRSTNAME	string,
+DEALSIZE string)
+row format delimited
+fields terminated by ',';
+
+#Load data into csv table
+load data local inpath 'file:///hive_assignment/sales_order_data.csv' into table table sales_order_csv;
+
+#Create table in orc format
+create table sales_order_orc(
+ORDERNUMBER int,
+QUANTITYORDERED	int,
+PRICEEACH float,
+ORDERLINENUMBER int,
+SALES float,
+STATUS string,
+QTR_ID int,
+MONTH_ID	int,
+YEAR_ID int,
+PRODUCTLINE	string,
+MSRP int,
+PRODUCTCODE string,
+PHONE int,
+CITY string,
+STATE city,
+POSTALCODE int,
+country string,
+TERRITORY string,
+CONTACTLASTNAME string,
+CONTACTFIRSTNAME	string,
+DEALSIZE string)
+stored as orc;
+
+#Load data into orc table
+from sales_order_csv insert overwrite table sales_order_orc select *;
+
+# All Query
+1. select sum(sales) as total_sales from sales_order_orc group by year_id;
+2. select product_line,sum(QUANTITYORDERED) as total_order from sales_order_orc group by product_line order by total_order desc limit 1;
+3. select round(sum(sales),2) as total_sales from sales_order_orc group by qtr_id order by total_sales;
+4. select qtr_id,round(sum(sales),0) as total_sales from sales_order_orc order by total_sales limit 1;
+5. select country,round(sum(sales,0) as total_sales from sales_order_orc  order by total_sales desc limit 1
+union all
+select country,round(sum(sales,0) as total_sales from sales_order_orc  order by total_sales asc limit 1;
+6.select city,round(sum(sales)) as total_sales from sales_order_orc group by qtr_id,city order by city;
+7.with cte1 as(
+select month_id,year_id,sum(quantityordered) as total_ordered from sales_order_orc group by month_Id,year_id order by year_id),
+cte2 as(
+select month_id,year_id,row_number() over (partition by year_id order by total_ordered desc) as rn from cte1)
+select month_id,year_id from cte2 where rn=1;
