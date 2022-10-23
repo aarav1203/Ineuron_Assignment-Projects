@@ -510,3 +510,51 @@ Wasim 	156
 Zeeshan 	48
 Time taken: 52.663 seconds, Fetched: 47 row(s)
 hive> 
+
+##Find the number of chat on which they have received a feedback
+select agent_name,sum(total_feedback) as feedback_chat from agent_performance group by agent_name;
+
+#Perform inner join, left join and right join based on the agent column and after joining the table export that data into your local system.
+
+#Inner Join
+select ap.date,ap.agent_name,ap.average_response_time,ap.average_resolution_time,ap.average_ratin,ap.total_feedback ,al.login_time,al.logout.time,al.duration
+from agent_performance ap inner join agent_login al on ap.agent_name=al.agent_name group by agent_name;
+
+#Right Join
+select ap.date,ap.agent_name,ap.average_response_time,ap.average_resolution_time,ap.average_ratin,ap.total_feedback ,al.login_time,al.logout.time,al.duration
+from agent_performance ap right join agent_login al on ap.agent_name=al.agent_name group by agent_name;
+
+# Left Join
+select ap.date,ap.agent_name,ap.average_response_time,ap.average_resolution_time,ap.average_ratin,ap.total_feedback ,al.login_time,al.logout.time,al.duration
+from agent_performance ap left join agent_login al on ap.agent_name=al.agent_name group by agent_name;
+
+create table buck_agent_performance(
+slno int,
+date string,
+total_chats int,
+average_response_time string
+average_resolution_time string,
+average_rating float,
+total_feedbacks int)
+partitioned by(agent_name string) 
+clustered by (date)
+sorted by date
+into 5 buckets;
+
+#Load data into partioned table
+insert overwrite table buck_agent_performance partition(agent_name) select slno,date,total_chats,average_response_time,average_resolution_time,average_rating,total_feedbacks 
+from agent_performance;
+
+create table buck_agent_login(
+slno int,
+date string,
+login_time string,
+logout_time string,
+duration string)
+partitioned by(agent_name string)
+clustered by (date)
+sorted by date
+into 5 buckets;
+
+#Load data into this table
+insert overwrite table buck_agent_login partition(agent_name) select slno,date,login_time,logout_time,duration from agent_login;
